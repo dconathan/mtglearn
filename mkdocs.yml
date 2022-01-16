@@ -1,0 +1,7 @@
+site_name: MtG Learn
+site_url: https://www.mtg-learn.org/
+theme:
+  name: material
+
+plugins:
+  - search
