@@ -1,16 +1,25 @@
-from kfp.v2.dsl import Output, Dataset
+from kfp.v2.dsl import component, Output, Dataset
 
 
-def preprocess_dataset(seed: int, n_duplicates: int, dataset: Output[Dataset]):
+@component(
+    base_image="python:3.9-slim",
+    packages_to_install=[
+        "/gcs/mtglearn/packages/mtglearn-22.1.0.dev0-py3-none-any.whl"
+    ],
+)
+def prepare_data(seed: int, n_duplicates: int, dataset: Output[Dataset]):
+
     from mtglearn.datasets import load_cards
     from mtglearn.datasets.cards import Card
     import attrs
     import cattrs
     import random
 
-    cards = load_cards(as_dataset=True, shuffle=True, seed=seed)
+    # train_mlm component/script needs to have train data with .txt suffix
+    dataset.path = dataset.path + ".txt"
 
     rng = random.Random(seed)
+    cards = load_cards(as_dataset=True)
 
     def preprocess_card(batch):
 
@@ -40,14 +49,9 @@ def preprocess_dataset(seed: int, n_duplicates: int, dataset: Output[Dataset]):
 
     cards = cards.map(
         preprocess_card, batched=True, batch_size=1, remove_columns=cards.column_names
-    ).shuffle()
+    ).shuffle(seed=rng.randint(100, 1000))
 
-    for card in cards[:100]["card"]:
-        print(card)
-
-    if dataset:
-        cards.save_to_disk(dataset.path)
-
-
-if __name__ == "__main__":
-    preprocess_dataset(9129568, 2, None)
+    # write to output
+    with open(dataset.path, "w") as f:
+        for card in cards:
+            f.write(card["card"] + "\n")

@@ -1,9 +1,31 @@
+import tempfile
+
 from kfp.v2.dsl import pipeline
+from kfp.v2.compiler import Compiler
+from google.cloud import aiplatform
+
+from .components.prepare_data import prepare_data
+from .components.train_mlm import train_mlm
 
 
 @pipeline(name="train-mlm-pipeline", pipeline_root="gs://mtglearn/pipelines/train-mlm")
 def train_mlm_pipeline():
-    pass
+
+    prepare_data_op = prepare_data(seed=624352, n_duplicates=10)
+
+    train_file = prepare_data_op.outputs["dataset"]
+    train_mlm(
+        model_name_or_path="roberta-base",
+        train_file=train_file,
+        batch_size=16,
+        learning_rate=5e-5,
+        num_train_epochs=0.1,
+        save_steps=500,
+    ).add_node_selector_constraint(
+        "cloud.google.com/gke-accelerator", "NVIDIA_TESLA_K80"
+    ).set_gpu_limit(
+        1
+    )
 
 
 if __name__ == "__main__":
