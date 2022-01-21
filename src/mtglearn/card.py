@@ -1,11 +1,44 @@
 from typing import List, Optional
+import re
 
 import attrs
-from attrs import define
+from attrs import frozen
 import cattrs
 
 
-@define(frozen=True)
+@frozen(slots=False)
+class Card:
+    # fields from mtgjson
+    name: Optional[str] = attrs.field(default=None)
+    mana_cost: Optional[str] = attrs.field(default=None, metadata={"alias": "manaCost"})
+    mana_value: Optional[int] = attrs.field(
+        default=None, metadata={"alias": "manaValue"}
+    )
+    types: Optional[List[str]] = attrs.field(default=None)
+    printing: Optional[str] = attrs.field(default=None)
+    rarity: Optional[str] = attrs.field(default=None)
+    text: Optional[str] = attrs.field(default=None)
+    power: Optional[str] = attrs.field(default=None)  # needs to be str because of `*`
+    toughness: Optional[str] = attrs.field(
+        default=None
+    )  # needs to be str because of `*`
+
+    def __str__(self):
+        """Canonical string representation of a card:
+
+        field1_name: field1_value | field2_name: field2_value | ..."""
+        fields = []
+        for f in attrs.fields(Card):
+            if f.repr:
+                value = getattr(self, f.name)
+                if isinstance(value, list):
+                    value = " ".join(value)
+                if value:
+                    fields.append((f.name, value))
+        return re.sub(r"\s+|_+", " ", " | ".join(f"{k}: {v}" for k, v in fields))
+
+
+@frozen(slots=False)
 class CardStats:
     # fields from 17lands
     name: Optional[str] = attrs.field(default=None)
@@ -31,33 +64,6 @@ class CardStats:
     drawn_improvement_win_rate: Optional[float] = attrs.field(default=None)
 
 
-@define(frozen=True)
-class Card:
-    # fields from mtgjson
-    name: Optional[str] = attrs.field(default=None)
-    mana_cost: Optional[str] = attrs.field(default=None, metadata={"alias": "manaCost"})
-    mana_value: Optional[int] = attrs.field(
-        default=None, metadata={"alias": "manaValue"}
-    )
-    types: Optional[List[str]] = attrs.field(default=None)
-    expansion: Optional[str] = attrs.field(default=None)
-    rarity: Optional[str] = attrs.field(default=None)
-    text: Optional[str] = attrs.field(default=None)
-    power: Optional[str] = attrs.field(default=None)  # needs to be str because of `*`
-    toughness: Optional[str] = attrs.field(
-        default=None
-    )  # needs to be str because of `*`
-
-    def __str__(self):
-        """Canonical string representation of a card:
-
-        field1_name: field1_value | field2_name: field2_value | ..."""
-        fields = []
-        for f in attrs.fields(type(self)):
-            if field.repr:
-                value = getattr(self, f.name)
-                if isinstance(value, list):
-                    value = " ".join(value)
-                if value:
-                    fields.append((f.name, value))
-        return re.sub(r"\s+|_+", " ", " | ".join(f"{k}: {v}" for k, v in fields))
+@frozen(slots=False)
+class CardWithStats(Card, CardStats):
+    pass
