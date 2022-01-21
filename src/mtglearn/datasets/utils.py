@@ -1,6 +1,13 @@
-from typing import List, Optional, Set
-from datasets import Features, Value, Sequence
+from typing import List, Optional, Set, Tuple
+import os
+import logging
+
+from datasets import Dataset, Features, Value, Sequence, load_from_disk
 import attrs
+from attrs import frozen
+
+
+logger = logging.getLogger(__name__)
 
 
 def type2features(cls) -> Features:
@@ -33,3 +40,38 @@ def type2features(cls) -> Features:
         return Features(**features)
 
     raise NotImplementedError(str(types))
+
+
+def try_load_dataset(filename: str) -> Optional[Dataset]:
+    """
+    Tries to load the dataset from a cache. Returns None if the path does not exist or if there was an error.
+    """
+    if os.path.exists(filename):
+        try:
+            dataset = load_from_disk(filename)
+            logger.debug(f"loaded cached dataset from {filename}!")
+            return dataset
+        except Exception as e:
+            logger.error(f"could not load dataset from {filename}: {e}")
+    return None
+
+
+@frozen
+class Args:
+    as_objs: bool
+    as_dataset: bool
+    as_dataframe: bool
+
+
+def check_args(as_objs: bool, as_dataset: bool, as_dataframe: bool) -> Args:
+
+    if sum([as_objs, as_dataframe, as_dataset]) > 1:
+        raise ValueError(
+            "Only one of 'as_objs', 'as_dataframe', or 'as_dataste' must be set."
+        )
+
+    # as_dataframe is the default
+    if not (as_objs or as_dataset):
+        as_dataframe = True
+
+    return Args(as_objs=as_objs, as_dataset=as_dataset, as_dataframe=as_dataframe)

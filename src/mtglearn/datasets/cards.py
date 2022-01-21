@@ -18,7 +18,7 @@ from datasets import Features, Value, Dataset, Sequence, load_from_disk
 
 from ..config import MTGLEARN_CACHE_HOME
 from ..card import Card, CardStats, CardWithStats
-from .utils import type2features
+from .utils import type2features, try_load_dataset, check_args
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ def _join_card_with_stats(card):
     return card
 
 
-def _process_raw_cards():
+def _process_raw_cards(refresh=False):
 
     # make a custom cattrs "structure" function that renames fields according to field aliases
     rename = {}
@@ -76,6 +76,7 @@ def _process_raw_cards():
         cache_dir=MTGLEARN_CACHE_HOME,
         ignore_url_params=True,
         use_etag=False,
+        force_download=refresh,
     )
 
     raw_dataset = defaultdict(list)
@@ -97,20 +98,9 @@ def _process_raw_cards():
     return dataset
 
 
-def _try_load(filename: str) -> Optional[Dataset]:
-    if os.path.exists(filename):
-        try:
-            dataset = load_from_disk(filename)
-            logger.debug(f"loaded cached dataset from {filename}!")
-            return dataset
-        except Exception as e:
-            logger.error(f"could not load dataset from {filename}: {e}")
-    return None
-
-
 def load_cards(
     as_dataset: bool = False,
-    as_attrs: bool = False,
+    as_objs: bool = False,
     as_dataframe: bool = False,
     with_stats: bool = False,
     refresh_cards: bool = False,
@@ -120,24 +110,17 @@ def load_cards(
     Hello world!
     """
 
-    if sum([as_attrs, as_dataframe, as_dataset]) > 1:
-        raise ValueError(
-            "Only one of 'as_attrs', 'as_dataframe', or 'as_dataste' must be set."
-        )
-
-    # as_dataframe is the default
-    if not (as_attrs or as_dataset):
-        as_dataframe = True
+    args = check_args(as_objs=as_objs, as_dataset=as_dataset, as_dataframe=as_dataframe)
 
     # try to load the Dataset object from cache
     if refresh_cards:
         dataset = None
     else:
-        dataset = _try_load(CARDS_DATASET_CACHE)
+        dataset = try_load_dataset(CARDS_DATASET_CACHE)
 
     # if None, download and process
     if dataset is None:
-        dataset = _process_raw_cards()
+        dataset = _process_raw_cards(refresh=refresh_cards)
 
     # if with_stats, grab from cache or load from 17lands
     if with_stats:
@@ -145,7 +128,7 @@ def load_cards(
         if refresh_stats:
             card_stats = None
         else:
-            card_stats = _try_load(CARD_STATS_DATASET_CACHE)
+            card_stats = try_load_dataset(CARD_STATS_DATASET_CACHE)
 
         # if None, download and process/join with dataset
         if card_stats is None:
@@ -161,15 +144,15 @@ def load_cards(
         dataset = card_stats
 
     # if as_dataset, we are done
-    if as_dataset:
+    if args.as_dataset:
         return dataset
 
     # convert dataset to pandas dataframe
-    if as_dataframe:
+    if args.as_dataframe:
         return dataset.to_pandas()
 
-    # convert to attrs objects. with_stats=False if we are at this point
-    if as_attrs:
+    # convert to attrs objects
+    if args.as_objs:
         if with_stats:
             fromdict = make_dict_structure_fn(CardWithStats, cattrs.Converter())
         else:

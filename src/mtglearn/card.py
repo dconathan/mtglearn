@@ -4,6 +4,7 @@ import re
 import attrs
 from attrs import frozen
 import cattrs
+from ftfy import fix_text
 
 
 @frozen(slots=False)
@@ -35,7 +36,9 @@ class Card:
                     value = " ".join(value)
                 if value:
                     fields.append((f.name, value))
-        return re.sub(r"\s+|_+", " ", " | ".join(f"{k}: {v}" for k, v in fields))
+        return fix_text(
+            re.sub(r"\s+|_+", " ", " | ".join(f"{k}: {v}" for k, v in fields))
+        )
 
 
 @frozen(slots=False)
