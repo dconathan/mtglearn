@@ -22,7 +22,7 @@ def train_mlm_pipeline():
         num_train_epochs=0.1,
         save_steps=500,
     ).add_node_selector_constraint(
-        "cloud.google.com/gke-accelerator", "NVIDIA_TESLA_K80"
+        "cloud.google.com/gke-accelerator", "NVIDIA_TESLA_T4"
     ).set_gpu_limit(
         1
     )
