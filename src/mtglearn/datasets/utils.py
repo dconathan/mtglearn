@@ -33,4 +33,3 @@ def type2features(cls) -> Features:
         return Features(**features)
 
     raise NotImplementedError(str(types))
-
