@@ -109,13 +109,16 @@ def _try_load(filename: str) -> Optional[Dataset]:
 
 
 def load_cards(
-    as_dataset=False,
-    as_attrs=False,
-    as_dataframe=False,
-    with_stats=False,
-    refresh_cards=False,
-    refresh_stats=False,
+    as_dataset: bool = False,
+    as_attrs: bool = False,
+    as_dataframe: bool = False,
+    with_stats: bool = False,
+    refresh_cards: bool = False,
+    refresh_stats: bool = False,
 ):
+    """
+    Hello world!
+    """
 
     if sum([as_attrs, as_dataframe, as_dataset]) > 1:
         raise ValueError(

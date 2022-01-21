@@ -4,4 +4,19 @@ theme:
   name: material
 
 plugins:
-  - search
+  - search:
+  - mkdocstrings:
+      handlers:
+        python:
+          rendering:
+            show_source: false
+            show_root_heading: true
+            show_full_root_path: false
+            show_signature: true
+            show_signature_annotations: true
+nav:
+  - Home: index.md
+  - Docs: docs/index.md
+  - Blog:
+    - 2021:
+      - blog/2022/hello-world.md

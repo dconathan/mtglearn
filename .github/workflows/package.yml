@@ -18,9 +18,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Build package
         run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel
           python setup.py bdist_wheel
       - name: Run tests
         run: |
-          pip install --upgrade pip
-          pip install mtglearn --find-links=dist/
-          pytest
+          python -m pip install --upgrade pip
+          python -m pip install mtglearn --find-links=dist/
+          python -m pytest
