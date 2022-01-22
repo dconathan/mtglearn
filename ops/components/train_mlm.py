@@ -8,13 +8,9 @@ from google.cloud import aiplatform
 
 import os
 
-COMET_API_KEY = os.environ.get("COMET_API_KEY")
-COMET_PROJECT_NAME = os.environ.get("COMET_PROJECT_NAME")
-
 
 IMAGE = "python:3.9-slim"
-IMAGE = "pytorch/pytorch:1.10.0-cuda11.3-cudnn8-runtime"
-
+IMAGE = "pytorch/pytorch:1.10.0-cuda11.3-cudnn8-devel"
 
 @component(
     base_image=IMAGE,
@@ -45,6 +41,8 @@ def train_mlm(
     response = client.access_secret_version(request={"name": name})
     os.environ["COMET_API_KEY"] = response.payload.data.decode("UTF-8")
     os.environ["COMET_PROJECT_NAME"] = "mtglearn"
+
+    # prevent segfaults
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     import comet_ml
@@ -302,8 +300,6 @@ def train_mlm(
             warmup_ratio=0.01,
             save_steps=save_steps,
             disable_tqdm=True,
-            load_best_model_at_end=True,  # needed for early stopping
-            metric_for_best_model="loss",  # needed for early stopping
         )
 
         # Setup logging

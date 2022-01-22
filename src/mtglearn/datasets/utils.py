@@ -49,7 +49,7 @@ def try_load_dataset(filename: str) -> Optional[Dataset]:
     if os.path.exists(filename):
         try:
             dataset = load_from_disk(filename)
-            logger.debug(f"loaded cached dataset from {filename}!")
+            logger.debug(f"loaded cached dataset from {filename}")
             return dataset
         except Exception as e:
             logger.error(f"could not load dataset from {filename}: {e}")
