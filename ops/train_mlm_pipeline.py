@@ -8,6 +8,9 @@ from .components.prepare_data import prepare_data
 from .components.train_mlm import train_mlm
 
 
+CHECKPOINT = "/gcs/mtglearn/pipelines/train-mlm/1012183947023/train-mlm-pipeline-20220122105016/train-mlm_-2020020563526811648/output_dir/checkpoint-152500"
+
+
 @pipeline(name="train-mlm-pipeline", pipeline_root="gs://mtglearn/pipelines/train-mlm")
 def train_mlm_pipeline():
 
@@ -15,10 +18,10 @@ def train_mlm_pipeline():
 
     train_file = prepare_data_op.outputs["dataset"]
     train_mlm(
-        model_name_or_path="roberta-base",
+        model_name_or_path=CHECKPOINT,
         train_file=train_file,
         batch_size=8,
-        learning_rate=5e-5,
+        learning_rate=2.5e-5,
         num_train_epochs=4,
         save_steps=2500,
     ).add_node_selector_constraint(
