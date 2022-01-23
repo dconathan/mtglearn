@@ -28,6 +28,7 @@ jobs:
 
 
   test:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -42,6 +43,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: wheel
+          path: dist/
       - name: Run tests
         run: |
           python -m pip install --upgrade pip
