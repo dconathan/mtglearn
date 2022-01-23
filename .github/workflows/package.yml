@@ -6,24 +6,43 @@ on:
       - test2
 
 jobs:
-  build:
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Build whl 
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel
+          python setup.py bdist_wheel
+      - name: Upload whl
+        uses: actions/upload-artifact@v2
+        with:
+          name: wheel
+          path: dist/*.whl
+
+
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7]
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Build package
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install wheel
-          python setup.py bdist_wheel
+      - name: Download whl
+        uses: actions/download-artifact@v2
+          with:
+            name: wheel
+            path: dist/
       - name: Run tests
         run: |
           python -m pip install --upgrade pip

@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - test
+      - test2
       
 jobs:
   build_wheels:
