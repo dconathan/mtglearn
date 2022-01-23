@@ -17,10 +17,10 @@ def train_mlm_pipeline():
     train_mlm(
         model_name_or_path="roberta-base",
         train_file=train_file,
-        batch_size=16,
+        batch_size=8,
         learning_rate=5e-5,
         num_train_epochs=4,
-        save_steps=5000,
+        save_steps=2500,
     ).add_node_selector_constraint(
         "cloud.google.com/gke-accelerator", "NVIDIA_TESLA_T4"
     ).set_gpu_limit(

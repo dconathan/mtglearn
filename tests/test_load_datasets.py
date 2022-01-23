@@ -1,6 +1,6 @@
-from mtglearn.datasets.cards import _process_raw_cards
-from mtglearn.datasets import load_cards
-from mtglearn.card import Card
+from mtglearn.datasets.cards import _process_raw_cards, Card
+from mtglearn.datasets.rules import Rule
+from mtglearn.datasets import load_cards, load_rules
 import pandas as pd
 from datasets import Dataset
 
@@ -28,9 +28,9 @@ def test_load_cards_as_dataframe():
     assert len(cards.columns)
 
 
-def test_load_cards_as_attrs():
+def test_load_cards_as_objs():
 
-    cards = load_cards(as_attrs=True)
+    cards = load_cards(as_objs=True)
 
     assert isinstance(cards, list)
     assert len(cards) > 1
@@ -62,6 +62,14 @@ def test_load_as_dataset_with_stats():
     cards = load_cards(as_dataset=True, with_stats=True)
 
 
-def test_load_as_attrs_with_stats():
+def test_load_as_objs_with_stats():
 
-    cards = load_cards(as_attrs=True, with_stats=True)
+    cards = load_cards(as_objs=True, with_stats=True)
+
+
+def test_load_rules():
+
+    load_rules()
+    load_rules(as_dataset=True)
+    load_rules(as_objs=True)
+    load_rules(as_dataframe=True)

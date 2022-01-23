@@ -12,6 +12,7 @@ import os
 IMAGE = "python:3.9-slim"
 IMAGE = "pytorch/pytorch:1.10.0-cuda11.3-cudnn8-devel"
 
+
 @component(
     base_image=IMAGE,
     packages_to_install=[

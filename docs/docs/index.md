@@ -1,7 +1,4 @@
-```python
-from mtglearn.datasets import load_cards
+# Package Reference
 
-cards = load_cards()
-```
-
+## `load_cards()`
 ::: mtglearn.datasets.load_cards
