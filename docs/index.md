@@ -1,5 +1,5 @@
 #
-MtG Learn is a project for all things Magic: the Gathering and machine learning.
+MtG Learn is a project for applying machine learning to the trading card game Magic: the Gathering.
 
 
 ## Installation
