@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
-      - name: Build whl 
+      - name: Build wheel 
         run: |
           python -m pip install --upgrade pip
           python -m pip install wheel
@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Download whl
+      - name: Download wheel
         uses: actions/download-artifact@v2
         with:
           name: wheel
@@ -49,3 +49,27 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install mtglearn[tests] --find-links=dist/
           python -m pytest
+
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USERNAME: __token__
+      TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Download wheel
+        uses: actions/download-artifact@v2
+        with:
+          name: wheel
+          path: dist/
+      - name: Publish package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install twine
+          python -m twine upload --repository testpypi dist/*
