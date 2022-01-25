@@ -12,7 +12,6 @@ import attrs
 from attrs import define, frozen
 import cattrs
 from cattrs.gen import make_dict_unstructure_fn, make_dict_structure_fn, override
-import requests
 from datasets.utils.file_utils import cached_path
 from datasets import Features, Value, Dataset, Sequence, load_from_disk
 from ftfy import fix_text
@@ -204,8 +203,17 @@ def _get_seventeenlands_stats(
     if printing not in PRINTINGS_WITH_STATS:
         return None
     endpoint = f"https://www.17lands.com/card_ratings/data?expansion={printing}&format={stats_format}&start_date=2020-01-01"
-    response = requests.get(endpoint)
-    raw_seventeenlands_stats = response.json()
+
+    path = cached_path(
+        endpoint,
+        cache_dir=MTGLEARN_CACHE_HOME,
+        ignore_url_params=False,
+        use_etag=False,
+        force_download=False,
+    )
+    with open(path) as f:
+        raw_seventeenlands_stats = json.load(f)
+
     if not raw_seventeenlands_stats:
         logger.error(f"17lands returned no stats for {printing} {stats_format}")
         return MappingProxyType({})

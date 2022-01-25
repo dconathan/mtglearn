@@ -1,13 +1,28 @@
 from typing import List, Optional, Set, Tuple
 import os
 import logging
+from collections import defaultdict
 
 from datasets import Dataset, Features, Value, Sequence, load_from_disk
 import attrs
 from attrs import frozen
+import cattrs
 
 
 logger = logging.getLogger(__name__)
+
+
+def from_list(cls, xs: list) -> Dataset:
+    """
+    Helper function for turning a list of attrs objs into the corresponding Dataset object
+    """
+
+    todict = cattrs.gen.make_dict_unstructure_fn(cls, cattrs.Converter())
+    raw = defaultdict(list)
+    for x in xs:
+        for k, v in todict(x).items():
+            raw[k].append(v)
+    return Dataset.from_dict(raw, features=type2features(cls))
 
 
 def type2features(cls) -> Features:
