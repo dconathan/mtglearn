@@ -38,10 +38,12 @@ def _process_rule(line: str) -> str:
 
 
 def load_rules(
-    as_objs=False, as_dataset=False, as_dataframe=False, refresh: bool = False
+    as_attrs=False, as_dataset=False, as_dataframe=False, refresh: bool = False
 ):
 
-    args = check_args(as_objs=as_objs, as_dataset=as_dataset, as_dataframe=as_dataframe)
+    args = check_args(
+        as_attrs=as_attrs, as_dataset=as_dataset, as_dataframe=as_dataframe
+    )
 
     if refresh:
         dataset = None
@@ -70,6 +72,6 @@ def load_rules(
     if args.as_dataframe:
         return dataset.to_pandas()
 
-    if args.as_objs:
+    if args.as_attrs:
         fromdict = make_dict_structure_fn(Rule, cattrs.Converter())
         return [fromdict(r) for r in dataset]

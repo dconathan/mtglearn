@@ -44,6 +44,14 @@ BASIC_LANDS = {"Plains", "Mountain", "Swamp", "Island", "Forest"}
 
 @frozen(slots=False)
 class Card:
+    """
+    An `mtglearn.Card` object that respresents a single card.
+
+    Attributes:
+        name: foo
+        mana_cost: bar
+    """
+
     # fields from mtgjson
     name: Optional[str] = attrs.field(default=None)
     mana_cost: Optional[str] = attrs.field(default=None, metadata={"alias": "manaCost"})
@@ -108,8 +116,8 @@ class CardWithStats(Card, CardStats):
 
 
 def load_cards(
-    as_dataset: bool = False,
-    as_objs: bool = False,
+    as_dataset: bool = True,
+    as_attrs: bool = False,
     as_dataframe: bool = False,
     with_stats: bool = False,
     refresh: bool = False,
@@ -118,29 +126,37 @@ def load_cards(
 ):
     """
 
+    Arguments:
+        as_dataset: return cards as a `datasets.Dataset` object
+        as_attrs: return cards as attrs objects
+        as_dataframe: return cards as a `pandas.DataFrame`
+
     Example:
 
-        Use this function to load a cards dataset:
+        ```python
+        from mtglearn.datasets import load_cards
 
-                from mtglearn.datasets import load_cards
-                cards = load_cards()
+        # load as a datasets.Dataset
+        cards = load_cards()
 
-                # or with 17lands stats
-                cards_with_stats = load_cards(with_stats=True)
+        # as a pandas.DataFrame
+        cards = load_cards(as_dataframe=True)
 
+        # with 17lands stats
+        cards_with_stats = load_cards(with_stats=True)
 
-    Arguments:
-        as_dataset: return cards as a datasets.Dataset object
-        as_objs: return cards as attrs objects
-        as_dataframe: return cards as a pandas DataFrame
-
+        ```
     """
 
     if refresh:
         refresh_cards = True
         refresh_stats = True
 
-    args = check_args(as_objs=as_objs, as_dataset=as_dataset, as_dataframe=as_dataframe)
+    args = check_args(
+        as_attrs=as_attrs, as_dataset=as_dataset, as_dataframe=as_dataframe
+    )
+
+    logger.debug(f"loading cards with args: {args}")
 
     # try to load the Dataset object from cache
     if refresh_cards:
@@ -187,7 +203,7 @@ def load_cards(
         return dataset.to_pandas()
 
     # convert to attrs objects
-    if args.as_objs:
+    if args.as_attrs:
         if with_stats:
             fromdict = make_dict_structure_fn(CardWithStats, cattrs.Converter())
         else:

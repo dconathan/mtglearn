@@ -2,16 +2,37 @@ site_name: MtG Learn
 site_url: https://www.mtg-learn.org/
 theme:
   name: material
+  features:
+    - content.code.annotate 
+extra_css:
+  - css/extra.css
+
+nav:
+  - Home: index.md
+  - Docs: docs/index.md
+  - Blog:
+    - 2022:
+      - blog/2022/hello-world.md
+
 
 plugins:
   - search:
   - mkdocstrings:
       watch:
         - src
+      handlers:
+        python:
+          rendering:
+            show_signature: false
+            show_source: false
+            show_root_full_path: false
+            show_root_toc_entry: false
+            show_root_heading: true
 
-nav:
-  - Home: index.md
-  - Docs: docs/index.md
-  - Blog:
-    - 2021:
-      - blog/2022/hello-world.md
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+

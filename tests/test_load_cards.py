@@ -5,18 +5,14 @@ import pandas as pd
 from datasets import Dataset
 
 
-def test_process_cards():
-
-    _process_raw_cards()
-
-
 def test_load_cards_default():
 
     cards = load_cards()
 
-    assert isinstance(cards, pd.DataFrame)
+    assert isinstance(cards, Dataset)
     assert len(cards) > 1
-    assert len(cards.columns)
+    assert isinstance(cards[0], dict)
+    assert cards[0]
 
 
 def test_load_cards_as_dataframe():
@@ -28,9 +24,9 @@ def test_load_cards_as_dataframe():
     assert len(cards.columns)
 
 
-def test_load_cards_as_objs():
+def test_load_cards_as_attrs():
 
-    cards = load_cards(as_objs=True)
+    cards = load_cards(as_attrs=True)
 
     assert isinstance(cards, list)
     assert len(cards) > 1
@@ -62,14 +58,6 @@ def test_load_as_dataset_with_stats():
     cards = load_cards(as_dataset=True, with_stats=True)
 
 
-def test_load_as_objs_with_stats():
+def test_load_as_attrs_with_stats():
 
-    cards = load_cards(as_objs=True, with_stats=True)
-
-
-def test_load_rules():
-
-    load_rules()
-    load_rules(as_dataset=True)
-    load_rules(as_objs=True)
-    load_rules(as_dataframe=True)
+    cards = load_cards(as_attrs=True, with_stats=True)

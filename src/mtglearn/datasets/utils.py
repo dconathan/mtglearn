@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 def from_list(cls, xs: list) -> Dataset:
     """
-    Helper function for turning a list of attrs objs into the corresponding Dataset object
+    Helper function for turning a list of attrs attrs into the corresponding Dataset object
     """
 
     todict = cattrs.gen.make_dict_unstructure_fn(cls, cattrs.Converter())
@@ -73,20 +73,21 @@ def try_load_dataset(filename: str) -> Optional[Dataset]:
 
 @frozen
 class Args:
-    as_objs: bool
+    as_attrs: bool
     as_dataset: bool
     as_dataframe: bool
 
 
-def check_args(as_objs: bool, as_dataset: bool, as_dataframe: bool) -> Args:
+def check_args(as_attrs: bool, as_dataset: bool, as_dataframe: bool) -> Args:
 
-    if sum([as_objs, as_dataframe, as_dataset]) > 1:
-        raise ValueError(
-            "Only one of 'as_objs', 'as_dataframe', or 'as_dataste' must be set."
-        )
+    if all([as_attrs, as_dataframe, as_dataset]):
+        # since as_dataset is default, this means we got multiple values
+        raise ValueError("Only one of as_dataframe or as_attrs must be True")
+    elif not any([as_attrs, as_dataframe, as_dataset]):
+        logger.warning("Setting as_dataset=True")
+        as_dataset = True
+    elif sum([as_attrs, as_dataframe, as_dataset]) > 1:
+        # this means a non default was passed in:
+        as_dataset = False
 
-    # as_dataframe is the default
-    if not (as_objs or as_dataset):
-        as_dataframe = True
-
-    return Args(as_objs=as_objs, as_dataset=as_dataset, as_dataframe=as_dataframe)
+    return Args(as_attrs=as_attrs, as_dataset=as_dataset, as_dataframe=as_dataframe)

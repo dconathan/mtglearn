@@ -4,7 +4,7 @@ from kfp.v2.dsl import pipeline
 from kfp.v2.compiler import Compiler
 from google.cloud import aiplatform
 
-from .components.prepare_data import prepare_data
+from .components.prepare_mlm_data import prepare_data
 from .components.train_mlm import train_mlm
 
 
