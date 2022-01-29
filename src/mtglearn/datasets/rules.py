@@ -24,6 +24,15 @@ BULLET_RE = re.compile(r"^[a-z] ")
 
 @define
 class Rule:
+    """
+    A single line of text from the plain-text [comprensive rules](https://magic.wizards.com/en/rules).  This data model is simple for now but may in the future include references or the tree structure.
+
+    The text is lightly processed and section prefixes (e.g. *"701.3c"*) are removed.
+
+    Attributes:
+        text: the text of the rule.
+    """
+
     text: str
 
     def __str__(self):

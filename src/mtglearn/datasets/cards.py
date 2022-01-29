@@ -7,6 +7,7 @@ import os
 from functools import lru_cache
 from types import MappingProxyType
 import logging
+import gzip
 
 import attrs
 from attrs import define, frozen
@@ -23,7 +24,7 @@ from .utils import type2features, try_load_dataset, check_args
 logger = logging.getLogger(__name__)
 
 
-RAW_DATA_URL = "https://mtgjson.com/api/v5/AllPrintings.json"
+RAW_DATA_URL = "https://mtgjson.com/api/v5/AtomicCards.json.zip"
 CARDS_DATASET_CACHE = os.path.join(MTGLEARN_CACHE_HOME, "cards")
 CARD_STATS_DATASET_CACHE = os.path.join(MTGLEARN_CACHE_HOME, "card_stats")
 
@@ -45,11 +46,21 @@ BASIC_LANDS = {"Plains", "Mountain", "Swamp", "Island", "Forest"}
 @frozen(slots=False)
 class Card:
     """
-    An `mtglearn.Card` object that respresents a single card.
+    An `mtglearn.Card` object that respresents a single card.  The source of data is [MTGJSON](https://www.MTGJSON.com), which [aggregates from several sources](https://www.mtgjson.com/faq/#where-does-the-data-come-from). According to MTGJSON, an *Atomic Card* is:
+
+    > an oracle-like entity of a Magic: The Gathering card that only stores evergreen data about a card that would never change from printing to printing.
+
 
     Attributes:
-        name: foo
-        mana_cost: bar
+        name: [The name of the card](https://www.mtgjson.com/data-models/card-atomic/#name)
+        mana_cost:
+        mana_value:
+        types:
+        printing:
+        rarity:
+        text:
+        power:
+        toughness:
     """
 
     # fields from mtgjson
@@ -278,8 +289,13 @@ def _process_raw_cards(refresh=False):
         cache_dir=MTGLEARN_CACHE_HOME,
         ignore_url_params=True,
         use_etag=False,
-        force_download=refresh,
+        force_download=True,
+        force_extract=True,
+        extract_compressed_file=True,
     )
+
+    # returns the directory where the file was extracted, so join with filename
+    path = os.path.join(path, "AtomicCards.json")
 
     raw_dataset = defaultdict(list)
 
@@ -288,16 +304,22 @@ def _process_raw_cards(refresh=False):
 
     seen = set()
 
-    for printing_name, printing_data in raw_data.items():
-        for raw_card in printing_data["cards"]:
-            uid = (raw_card["name"], printing_name)
-            if uid in seen:
+    for raw_cards in raw_data.values():
+        for raw_card in raw_cards:
+            if "printings" not in raw_card:
+                logger.warning(
+                    f"no 'printings' found for {raw_card['name']}, skipping..."
+                )
                 continue
-            seen.add(uid)
-            raw_card["printing"] = printing_name
-            card = fromdict(raw_card)
-            for k, v in todict(card).items():
-                raw_dataset[k].append(v)
+            for printing in raw_card["printings"]:
+                uid = (raw_card["name"], printing)
+                if uid in seen:
+                    continue
+                seen.add(uid)
+                raw_card["printing"] = printing
+                card = fromdict(raw_card)
+                for k, v in todict(card).items():
+                    raw_dataset[k].append(v)
 
     dataset = Dataset.from_dict(raw_dataset, features=type2features(Card))
 
