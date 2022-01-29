@@ -24,7 +24,7 @@ from .utils import type2features, try_load_dataset, check_args
 logger = logging.getLogger(__name__)
 
 
-RAW_DATA_URL = "https://mtgjson.com/api/v5/AtomicCards.json.zip"
+RAW_DATA_URL = "https://mtgjson.com/api/v5/AllPrintings.json.zip"
 CARDS_DATASET_CACHE = os.path.join(MTGLEARN_CACHE_HOME, "cards")
 CARD_STATS_DATASET_CACHE = os.path.join(MTGLEARN_CACHE_HOME, "card_stats")
 
@@ -295,7 +295,7 @@ def _process_raw_cards(refresh=False):
     )
 
     # returns the directory where the file was extracted, so join with filename
-    path = os.path.join(path, "AtomicCards.json")
+    path = os.path.join(path, "AllPrintings.json")
 
     raw_dataset = defaultdict(list)
 
@@ -304,22 +304,16 @@ def _process_raw_cards(refresh=False):
 
     seen = set()
 
-    for raw_cards in raw_data.values():
-        for raw_card in raw_cards:
-            if "printings" not in raw_card:
-                logger.warning(
-                    f"no 'printings' found for {raw_card['name']}, skipping..."
-                )
+    for printing_name, printing_data in raw_data.items():
+        for raw_card in printing_data["cards"]:
+            uid = (raw_card["name"], printing_name)
+            if uid in seen:
                 continue
-            for printing in raw_card["printings"]:
-                uid = (raw_card["name"], printing)
-                if uid in seen:
-                    continue
-                seen.add(uid)
-                raw_card["printing"] = printing
-                card = fromdict(raw_card)
-                for k, v in todict(card).items():
-                    raw_dataset[k].append(v)
+            seen.add(uid)
+            raw_card["printing"] = printing_name
+            card = fromdict(raw_card)
+            for k, v in todict(card).items():
+                raw_dataset[k].append(v)
 
     dataset = Dataset.from_dict(raw_dataset, features=type2features(Card))
 
