@@ -25,7 +25,9 @@ BULLET_RE = re.compile(r"^[a-z] ")
 @define
 class Rule:
     """
-    A single line of text from the plain-text [comprensive rules](https://magic.wizards.com/en/rules).  This data model is simple for now but may in the future include references or the tree structure.
+    A single line of text from the plain-text [comprehensive rules](https://magic.wizards.com/en/rules).
+
+    This data model is simple for now but may in the future include references or the tree structure, references to mechanics, etc.
 
     The text is lightly processed and section prefixes (e.g. *"701.3c"*) are removed.
 
@@ -47,8 +49,34 @@ def _process_rule(line: str) -> str:
 
 
 def load_rules(
-    as_attrs=False, as_dataset=False, as_dataframe=False, refresh: bool = False
+    as_dataset: bool = True,
+    as_attrs: bool = False,
+    as_dataframe: bool = False,
+    refresh: bool = False,
 ):
+    """
+    This is the main function for loading the *rules* dataset.
+
+    See the [Rule][mtglearn.datasets.Rule] schema for information on what fields to expect from this dataset.
+
+    Arguments:
+        as_dataset: return rules as a `datasets.Dataset` object
+        as_attrs: return rules as attrs objects
+        as_dataframe: return rules as a `pandas.DataFrame`
+        refresh: if `True`, will force a fresh download from <https://magic.wizards.com/en/rules> even if they are already cached
+
+    Example:
+
+        ```python
+        from mtglearn.datasets import load_rules
+
+        rules = load_rules()
+        rules[500]
+        # {'text': 'Some effects from static abilities allow a player to take an action to ignore the effect from that ability for a duration. Doing so is a special action. A player can take such an action any time they have priority.'}
+        ```
+
+
+    """
 
     args = check_args(
         as_attrs=as_attrs, as_dataset=as_dataset, as_dataframe=as_dataframe

@@ -46,21 +46,21 @@ BASIC_LANDS = {"Plains", "Mountain", "Swamp", "Island", "Forest"}
 @frozen(slots=False)
 class Card:
     """
-    An `mtglearn.Card` object that respresents a single card.  The source of data is [MTGJSON](https://www.MTGJSON.com), which [aggregates from several sources](https://www.mtgjson.com/faq/#where-does-the-data-come-from). According to MTGJSON, an *Atomic Card* is:
+    An `mtglearn.datasets.Card` object that respresents a single card.  The source of data is [MTGJSON](https://www.MTGJSON.com), which [aggregates from several sources](https://www.mtgjson.com/faq/#where-does-the-data-come-from). According to MTGJSON, an *Atomic Card* is:
 
     > an oracle-like entity of a Magic: The Gathering card that only stores evergreen data about a card that would never change from printing to printing.
 
 
     Attributes:
-        name: [The name of the card](https://www.mtgjson.com/data-models/card-atomic/#name)
-        mana_cost:
-        mana_value:
-        types:
-        printing:
-        rarity:
-        text:
-        power:
-        toughness:
+        name: The card's [name](https://www.mtgjson.com/data-models/card-atomic/#name), e.g. `"Lightning Bolt"`
+        mana_cost: The card's [mana cost](https://www.mtgjson.com/data-models/card-atomic/#manacost), with each symbol wrapped in `{}`, (e.g. `{R}` for a red mana)
+        mana_value: The card's [mana value](https://www.mtgjson.com/data-models/card-atomic/#manacost), e.g. `1`
+        types: A list of all [types](https://www.mtgjson.com/data-models/card-atomic/#types) the card has, e.g. an *Artifact Creature* would have `["Artifact", "Creature"]`
+        printing: The uppercase code for the [printing](https://www.mtgjson.com/data-models/card-atomic/#printings) (or *set*, *expansion*, etc.) that this card is from, e.g. `"VOW"`.  A card can have many printings and thus can show up many times in the dataset.
+        rarity: The lowercase card's [rarity](https://www.mtgjson.com/data-models/card-set/#rarity) for this particular printing, e.g. `"uncommon"`.  A card's rarity can change from printing to printing.
+        text: The rules [text](https://www.mtgjson.com/data-models/card-atomic/#text) of the card
+        power: If applicable, the [power](https://www.mtgjson.com/data-models/card-atomic/#power). This is a `str` and not an `int` since e.g. `"*"` is possible.
+        toughness: If applicable, the [toughness](https://www.mtgjson.com/data-models/card-atomic/#toughness). This is a `str` and not an `int` since e.g. `"*"` is possible.
     """
 
     # fields from mtgjson
@@ -97,7 +97,30 @@ class Card:
 
 @frozen(slots=False)
 class CardStats:
-    # fields from 17lands
+    """
+    An `mtglearn.datasets.CardStats` is an object that holds the [17lands](https://www.17lands.com/) data for a particular card.
+    Usually you will be accessing these stats via an `mtglearn.datasets.CardWithStats` object which has the fields from a `Card` joined with these `CardStats` fields.
+
+    See the [17lands metrics definitions](https://www.17lands.com/metrics_definitions) page for more details about each attribute.
+
+    Attributes:
+        seen_count: Number of packs the card was seen in.
+        avg_seen: Average pick number the card was last seen at.
+        avg_pick: Average pick this card was picked by 17land users
+        pick_count: Number of times this card was picked.
+        game_count: Number of times the card was played.
+        win_rate: Number of times the card won.
+        sideboard_game_count: Number of games this card was in the sideboard? (not documented)
+        sideboard_win_rate: Number of games won with this in the sideboard? (not documented)
+        drawn_game_count: Number of games this card was drawn (not counting opening hand).
+        drawn_win_rate: Rate this card won when drawn (not counting opening hand)
+        ever_drawn_game_count: Number of games in hand
+        ever_drawn_win_rate: Rate this card won when in hand
+        never_drawn_game_count: Number of games never drawn
+        never_drawn_win_rate: Rate this card won when never drawn
+        drawn_improvement_win_rate: How much win rate improves when drawn
+    """
+
     name: Optional[str] = attrs.field(default=None)
     stats_format: Optional[str] = attrs.field(default=None)
     stats_colors: Optional[str] = attrs.field(default=None)
@@ -123,7 +146,9 @@ class CardStats:
 
 @frozen(slots=False)
 class CardWithStats(Card, CardStats):
-    pass
+    """
+    A `mtglearn.datasets.CardWithStats` object is simply an object with fields from `Card` and `CardStats`.
+    """
 
 
 def load_cards(
@@ -131,16 +156,28 @@ def load_cards(
     as_attrs: bool = False,
     as_dataframe: bool = False,
     with_stats: bool = False,
-    refresh: bool = False,
     refresh_cards: bool = False,
     refresh_stats: bool = False,
+    refresh: bool = False,
 ):
     """
+    This is the main function for loading the *cards* dataset.
+
+    There are two versions of this dataset: one *with stats* and one *without*.
+
+    The version *without stats* will include all 55000+ cards in Magic: The Gathering's history.
+
+    The one *with stats* will only include cards that have statistics tracked on [17lands](https://www.17lands.com), which as of now is about 2000.
+
+    See the [Card][mtglearn.datasets.Card] and [CardStats][mtglearn.datasets.CardStats] schemas for information on what fields to expect in these datasets.
 
     Arguments:
         as_dataset: return cards as a `datasets.Dataset` object
         as_attrs: return cards as attrs objects
         as_dataframe: return cards as a `pandas.DataFrame`
+        refresh_cards: if `True`, will force a fresh download from [MTGJSON](https://www.MTGJSON.com) even if cards are alrady cached.
+        refresh_stats: if `True`, will force a freshdownload of the [17Lands](https://www.17lands.com) stats even if they are already cached.
+        refresh: if `True`, is equivalent to both `refresh_cards` and `refresh_stats` being `True`.
 
     Example:
 

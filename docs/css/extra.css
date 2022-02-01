@@ -9,3 +9,10 @@ div.doc-contents:not(.first) {
   font-size: large !important;
   background-color: transparent !important;
 }
+
+:root {
+  --md-primary-fg-color:        #3DADBB;
+  --md-primary-fg-color--light: #F0D167;
+  --md-primary-fg-color--dark:  #615934;
+}
+

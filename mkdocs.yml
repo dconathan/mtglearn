@@ -4,6 +4,8 @@ theme:
   name: material
   features:
     - content.code.annotate 
+extra:
+  generator: false
 extra_css:
   - css/extra.css
 
